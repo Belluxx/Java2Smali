@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Java2Smali:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Java2Smali_jar</output-path>
+    <root id="archive" name="Java2Smali.jar">
+      <element id="module-output" name="Java2Smali" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/assets/baksmali.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/assets/dx.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
