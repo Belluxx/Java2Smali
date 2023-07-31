@@ -70,9 +70,7 @@ public class Main {
             // Convert to smali
             convert(providedFile, optimize);
 
-            // Extract and clean
-            //print("[I] Extracting smali files...");
-            //ConversionManager.extractSmaliFiles(new File(providedFile.getParentFile().getAbsolutePath() + SEPARATOR + OUT_SMALI_FOLDER));
+            // Cleanup
             print("[I] Cleaning...");
             ConversionManager.clean(providedFile.getParentFile(), compiledJava);
             print("[I] Done.");

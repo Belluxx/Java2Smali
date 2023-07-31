@@ -107,28 +107,7 @@ public class ConversionManager {
         ToolsManager.runBaksmali(dexFile.getAbsolutePath());
     }
 
-    public static void extractSmaliFiles(File smaliFolder) {
-        File absSmaliFolder = smaliFolder.getAbsoluteFile();
-        File absParentFolder = absSmaliFolder.getParentFile().getAbsoluteFile();
-
-        try {
-            File[] smaliFiles = smaliFolder.listFiles();
-            if (smaliFiles != null) {
-                for (File smaliFile : smaliFiles) {
-                    Files.move(smaliFile.toPath(), Paths.get(absParentFolder.getAbsolutePath() + SEPARATOR + smaliFile.getName()), StandardCopyOption.REPLACE_EXISTING);
-                }
-            } else {
-                throw new IOException("smaliFiles is null");
-            }
-        } catch (IOException e) {
-            print("[E] Error during extraction.");
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
     public static void clean(File folderFile, File compiledJava) {
-        //deleteFile(folderFile.getAbsolutePath() + SEPARATOR + OUT_SMALI_FOLDER);
         deleteFile(folderFile.getAbsolutePath() + SEPARATOR + "FilesList.txt");
         deleteFile(folderFile.getAbsolutePath() + SEPARATOR + "classes.dex");
         deleteFile(compiledJava.getAbsoluteFile());
