@@ -31,7 +31,7 @@ public class Main {
             print(HELP_MESSAGE);
             System.exit(1);
         } else {
-            if (args[0].startsWith("--")) {
+            if (args[0].startsWith("-")) {
                 switch (args[0]) {
                     case "--version":
                     case "-v":
