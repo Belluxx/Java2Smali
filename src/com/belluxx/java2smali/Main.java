@@ -34,15 +34,15 @@ public class Main {
             if (args[0].startsWith("--")) {
                 switch (args[0]) {
                     case "--version":
-                    case "--v":
+                    case "-v":
                         print("Java2Smali v" + VERSION);
                         break;
                     case "--help":
-                    case "--h":
+                    case "-h":
                         print(HELP_MESSAGE);
                         break;
                     case "--no-optimize":
-                    case "--n":
+                    case "-n":
                         if (args.length > 1) convertAndClean(args[1], false);
                         else print("[E] Missing file.");
                         break;
