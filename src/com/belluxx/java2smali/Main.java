@@ -52,13 +52,9 @@ public class Main {
                         break;
                 }
             } else {
-                convertAndClean(args[0]);
+                convertAndClean(args[0], true);
             }
         }
-    }
-
-    private void convertAndClean(String providedPath) {
-        convertAndClean(providedPath, true);
     }
 
     private void convertAndClean(String providedPath, boolean optimize) {
@@ -111,8 +107,8 @@ public class Main {
 
     private void checkPath(String path) {
         if (new File(path).isDirectory() && path.contains(" ")) {
-            print("[E] The path provided contains spaces.");
-            print("[I] Only the conversion of single files is available for paths that contain spaces.");
+            print("[E] The path provided contains spaces");
+            print("[I] Only the conversion of single files is available for paths that contain spaces");
             System.exit(1);
         }
     }

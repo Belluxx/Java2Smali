@@ -8,8 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
@@ -19,6 +17,7 @@ import static com.belluxx.java2smali.Main.print;
 public class ConversionManager {
 
     public static File compileJavaFile(File javaFile) {
+        String workingDirPath = javaFile.getAbsoluteFile().getParentFile().getAbsolutePath();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         OutputStream errors = new OutputStream() {
@@ -41,13 +40,13 @@ public class ConversionManager {
         } else {
             compiler.run(null, null, errors, "-source", "1.8", "-target", "1.8", javaFile.getAbsolutePath());
         }
-
         checkErrors(errors.toString(), javaFile.getName());
 
-        return new File(javaFile.getAbsoluteFile().getParentFile().getAbsolutePath() + SEPARATOR + javaFile.getName().replace(Main.JAVA_EXT, Main.CLASS_EXT));
+        return new File(workingDirPath + SEPARATOR + javaFile.getName().replace(Main.JAVA_EXT, Main.CLASS_EXT));
     }
 
     public static File compileJavaFolder(File javaFolder) {
+        String workingDirPath = javaFolder.getAbsoluteFile().getParentFile().getAbsolutePath();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         OutputStream errors = new OutputStream() {
@@ -65,18 +64,16 @@ public class ConversionManager {
         };
 
         if (compiler == null) {
-            print("[E] You are running a JRE instead of a JDK.");
+            print("[E] You are running a JRE instead of a JDK");
             System.exit(1);
         } else {
-            String workingDirPath = javaFolder.getAbsoluteFile().getParentFile().getAbsolutePath();
-            File workingDir = new File(workingDirPath);
             File fileList = new File(workingDirPath + SEPARATOR + "FilesList.txt");
             generateFilesList(javaFolder, fileList, true);
             compiler.run(null, null, errors, "-source", "1.8", "-target", "1.8", "@" + fileList.getAbsolutePath().replace(" ", "\\ "), "-d", workingDirPath + SEPARATOR + javaFolder.getName().concat("_compiled"));
         }
-        checkErrors(errors.toString(), javaFolder.getName().concat(" folder"));
+        checkErrors(errors.toString(), javaFolder.getName() + " folder");
 
-        return new File(javaFolder.getAbsoluteFile().getParentFile().getAbsolutePath() + SEPARATOR + javaFolder.getName() + "_compiled");
+        return new File(workingDirPath + SEPARATOR + javaFolder.getName() + "_compiled");
     }
 
     public static File dexClassFile(File classFile, boolean optimize) {
@@ -119,7 +116,8 @@ public class ConversionManager {
         if (deleteOldList) {
             deleteFile(listFile);
             try {
-                listFile.createNewFile();
+                boolean created = listFile.createNewFile();
+                if (!created) throw new IOException("File already exists");
             } catch (IOException e) {
                 print("[E] Cannot recreate " + listFile.getName());
                 return;
@@ -129,7 +127,7 @@ public class ConversionManager {
         try {
             for (File file : Objects.requireNonNull(files)) {
                 if (!file.isDirectory()) {
-                    Files.write(listFile.toPath(), file.getAbsolutePath().concat("\n").getBytes(), StandardOpenOption.APPEND);
+                    Files.write(listFile.toPath(), (file.getAbsolutePath() + "\n").getBytes(), StandardOpenOption.APPEND);
                 } else {
                     generateFilesList(file, listFile, false);
                 }
@@ -142,8 +140,8 @@ public class ConversionManager {
 
     private static void checkErrors(String log, String fileName) {
         if (log.contains("error")) {
-            print("[E] Error during the compilation of ".concat(fileName).concat("\n").concat(log));
-            print("[E] Compilation failed, check errors above for more info.");
+            print("[E] Error during the compilation of " + fileName + "\n" + log);
+            print("[E] Compilation failed, check errors above for more info");
             System.exit(1);
         }
     }
@@ -157,10 +155,8 @@ public class ConversionManager {
             try {
                 if (file.isDirectory()) deleteFolder(file);
                 else Files.delete(file.getAbsoluteFile().toPath());
-            } catch (IOException e) {
-                print("[W] Cannot delete ".concat(file.getName()).concat("."));
-            }
-        }
+            } catch (IOException e) { print("[W] Cannot delete " + file.getName()); }
+        } else print("[W] " + file.getName() + " does not exist");
     }
 
     private static void deleteFolder(File folder) throws IOException {
@@ -168,10 +164,10 @@ public class ConversionManager {
 
         if (files != null) {
             for (File tempFile : files) {
-                if (!tempFile.delete()) print("[W] Cannot delete ".concat(tempFile.getName()).concat("."));
+                if (!tempFile.delete()) print("[W] Cannot delete " + tempFile.getName());
             }
-            if (!folder.delete()) throw new IOException("Cannot delete " + folder.getName());
-        } else throw new IOException("Directory " + folder.getName() + " is empty.");
+            if (!folder.delete()) throw new IOException("[E] Cannot delete " + folder.getName());
+        } else throw new IOException("[E] Directory " + folder.getName() + " is empty");
     }
 
 }
