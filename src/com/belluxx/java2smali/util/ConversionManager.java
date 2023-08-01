@@ -68,7 +68,7 @@ public class ConversionManager {
             System.exit(1);
         } else {
             File fileList = new File(workingDirPath + SEPARATOR + "FilesList.txt");
-            generateFilesList(javaFolder, fileList, true);
+            generateFilesList(javaFolder, fileList);
             compiler.run(null, null, errors, "-source", "1.8", "-target", "1.8", "@" + fileList.getAbsolutePath().replace(" ", "\\ "), "-d", workingDirPath + SEPARATOR + javaFolder.getName().concat("_compiled"));
         }
         checkErrors(errors.toString(), javaFolder.getName() + " folder");
@@ -105,38 +105,41 @@ public class ConversionManager {
     }
 
     public static void clean(File folderFile, File compiledJava) {
-        deleteFile(folderFile.getAbsolutePath() + SEPARATOR + "FilesList.txt");
-        deleteFile(folderFile.getAbsolutePath() + SEPARATOR + "classes.dex");
-        deleteFile(compiledJava.getAbsoluteFile());
+        File[] filesToDelete = new File[]{
+                new File(folderFile.getAbsolutePath() + SEPARATOR + "FilesList.txt"),
+                new File(folderFile.getAbsolutePath() + SEPARATOR + "classes.dex"),
+                compiledJava.getAbsoluteFile()
+        };
+
+        for (File file : filesToDelete) {
+            if (file.exists()) deleteFile(file);
+        }
     }
 
-    private static void generateFilesList(File folderFile, File listFile, boolean deleteOldList) {
-        File[] files = folderFile.listFiles();
+    private static void generateFilesList(File folderFile, File listFile) {
+        if (listFile.exists()) deleteFile(listFile);
 
-        if (deleteOldList) {
-            deleteFile(listFile);
-            try {
-                boolean created = listFile.createNewFile();
-                if (!created) throw new IOException("File already exists");
-            } catch (IOException e) {
-                print("[E] Cannot recreate " + listFile.getName());
-                return;
-            }
+        try {
+            boolean created = listFile.createNewFile();
+            if (!created) throw new IOException("File already exists");
+        } catch (IOException e) {
+            print("[E] Cannot recreate " + listFile.getName());
+            return;
         }
+
+        generateFilesListRecursive(folderFile, listFile);
+    }
+
+    private static void generateFilesListRecursive(File folderFile, File listFile) {
+        File[] files = folderFile.listFiles();
 
         try {
             for (File file : Objects.requireNonNull(files)) {
-                if (!file.isDirectory()) {
-                    Files.write(listFile.toPath(), (file.getAbsolutePath() + "\n").getBytes(), StandardOpenOption.APPEND);
-                } else {
-                    generateFilesList(file, listFile, false);
-                }
+                if (!file.isDirectory()) Files.write(listFile.toPath(), (file.getAbsolutePath() + "\n").getBytes(), StandardOpenOption.APPEND);
+                else generateFilesListRecursive(file, listFile);
             }
-        } catch (IOException e) {
-            print("[E] Cannot create " + listFile.getName());
-        }
+        } catch (IOException e) { print("[E] Cannot create " + listFile.getName()); }
     }
-
 
     private static void checkErrors(String log, String fileName) {
         if (log.contains("error")) {
@@ -156,7 +159,7 @@ public class ConversionManager {
                 if (file.isDirectory()) deleteFolder(file);
                 else Files.delete(file.getAbsoluteFile().toPath());
             } catch (IOException e) { print("[W] Cannot delete " + file.getName()); }
-        } else print("[W] " + file.getName() + " does not exist");
+        } else print("[W] Cannot delete " + file.getName() + " because it does not exist");
     }
 
     private static void deleteFolder(File folder) throws IOException {
