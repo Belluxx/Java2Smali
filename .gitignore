@@ -1,5 +1,9 @@
-# Compiled class file
+# Compiled class/jar file
 *.class
+Java2Smali.jar
+
+# VSCode
+.vscode
 
 # IntelliJ
 codeStyles/
@@ -24,3 +28,6 @@ out/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Other
+.DS_Store
