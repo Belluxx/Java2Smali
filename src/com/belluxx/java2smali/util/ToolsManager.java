@@ -12,6 +12,6 @@ public class ToolsManager {
     }
 
     public static void runBaksmali(String dexFilePath) {
-        org.jf.baksmali.Main.main(new String[]{"d", dexFilePath, "-o", new File(dexFilePath).getAbsoluteFile().getParentFile().getAbsolutePath() + Main.SEPARATOR + OUT_SMALI_FOLDER});
+        com.android.tools.smali.baksmali.Main.main(new String[]{"d", dexFilePath, "-o", new File(dexFilePath).getAbsoluteFile().getParentFile().getAbsolutePath() + Main.SEPARATOR + OUT_SMALI_FOLDER});
     }
 }
