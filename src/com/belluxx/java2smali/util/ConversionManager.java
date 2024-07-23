@@ -134,7 +134,7 @@ public class ConversionManager {
         File[] files = folderFile.listFiles();
 
         try {
-            for (File file : Objects.requireNonNull(files)) {
+            for (File file : files) {
                 if (!file.isDirectory()) Files.write(listFile.toPath(), (file.getAbsolutePath() + "\n").getBytes(), StandardOpenOption.APPEND);
                 else generateFilesListRecursive(file, listFile);
             }
