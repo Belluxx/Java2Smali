@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.util.Objects;
 
 import static com.belluxx.java2smali.Main.SEPARATOR;
 import static com.belluxx.java2smali.Main.print;
@@ -147,10 +146,6 @@ public class ConversionManager {
             print("[E] Compilation failed, check errors above for more info");
             System.exit(1);
         }
-    }
-
-    private static void deleteFile(String fileName) {
-        deleteFile(new File(fileName));
     }
 
     private static void deleteFile(File file) {
