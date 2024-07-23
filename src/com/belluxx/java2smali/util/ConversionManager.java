@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 
 import static com.belluxx.java2smali.Main.SEPARATOR;
 import static com.belluxx.java2smali.Main.print;
@@ -16,7 +17,7 @@ import static com.belluxx.java2smali.Main.print;
 public class ConversionManager {
 
     public static File compileJavaFile(File javaFile) {
-        String workingDirPath = javaFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+        String workingDirPath = getParent(javaFile);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         OutputStream errors = new OutputStream() {
@@ -45,7 +46,7 @@ public class ConversionManager {
     }
 
     public static File compileJavaFolder(File javaFolder) {
-        String workingDirPath = javaFolder.getAbsoluteFile().getParentFile().getAbsolutePath();
+        String workingDirPath = getParent(javaFolder);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         OutputStream errors = new OutputStream() {
@@ -67,7 +68,7 @@ public class ConversionManager {
             System.exit(1);
         } else {
             File fileList = new File(workingDirPath + SEPARATOR + "FilesList.txt");
-            generateFilesList(javaFolder, fileList);
+            generateFilesList(javaFolder, fileList, new String[]{"java"});
             compiler.run(null, null, errors, "-source", "1.8", "-target", "1.8", "@" + fileList.getAbsolutePath().replace(" ", "\\ "), "-d", workingDirPath + SEPARATOR + javaFolder.getName().concat("_compiled"));
         }
         checkErrors(errors.toString(), javaFolder.getName() + " folder");
@@ -76,7 +77,7 @@ public class ConversionManager {
     }
 
     public static File dexClassFile(File classFile, boolean optimize) {
-        File dexFile = new File(classFile.getAbsoluteFile().getParentFile().getAbsolutePath() + SEPARATOR + "classes.dex");
+        File dexFile = new File(getParent(classFile) + SEPARATOR + "classes.dex");
 
         if (optimize) {
             ToolsManager.runDx(new String[]{"--dex", "--no-strict", "--no-warning", "--output", dexFile.getAbsolutePath(), classFile.getAbsolutePath()});
@@ -88,7 +89,7 @@ public class ConversionManager {
     }
 
     public static File dexClassFolder(File classFolder, boolean optimize) {
-        File dexFile = new File(classFolder.getAbsoluteFile().getParentFile().getAbsolutePath() + SEPARATOR + "classes.dex");
+        File dexFile = new File(getParent(classFolder) + SEPARATOR + "classes.dex");
 
         if (optimize) {
             ToolsManager.runDx(new String[]{"--dex", "--no-strict", "--no-warning", "--output", dexFile.getAbsolutePath(), classFolder.getAbsolutePath()});
@@ -115,7 +116,7 @@ public class ConversionManager {
         }
     }
 
-    private static void generateFilesList(File folderFile, File listFile) {
+    private static void generateFilesList(File folderFile, File listFile, String extensionsAllowed[]) {
         if (listFile.exists()) deleteFile(listFile);
 
         try {
@@ -126,16 +127,19 @@ public class ConversionManager {
             return;
         }
 
-        generateFilesListRecursive(folderFile, listFile);
+        generateFilesListRecursive(folderFile, listFile, extensionsAllowed);
     }
 
-    private static void generateFilesListRecursive(File folderFile, File listFile) {
+    private static void generateFilesListRecursive(File folderFile, File listFile, String extensionsAllowed[]) {
         File[] files = folderFile.listFiles();
 
         try {
             for (File file : files) {
-                if (!file.isDirectory()) Files.write(listFile.toPath(), (file.getAbsolutePath() + "\n").getBytes(), StandardOpenOption.APPEND);
-                else generateFilesListRecursive(file, listFile);
+                if (!file.isDirectory()) {
+                    if (Arrays.stream(extensionsAllowed).anyMatch(getExtension(file)::equals)) {
+                    Files.write(listFile.toPath(), (file.getAbsolutePath() + "\n").getBytes(), StandardOpenOption.APPEND);
+                    } else print("[I] Ignoring " + file.getName() + " because it does not match the allowed extensions.");
+                } else generateFilesListRecursive(file, listFile, extensionsAllowed);
             }
         } catch (IOException e) { print("[E] Cannot create " + listFile.getName()); }
     }
@@ -166,6 +170,14 @@ public class ConversionManager {
             }
             if (!folder.delete()) throw new IOException("[E] Cannot delete " + folder.getName());
         } else throw new IOException("[E] Directory " + folder.getName() + " is empty");
+    }
+
+    public static String getParent(File file) {
+        return file.getAbsoluteFile().getParentFile().getAbsolutePath();
+    }
+
+    public static String getExtension(File file) {
+        return file.getName().substring(file.getName().lastIndexOf('.')+1);
     }
 
 }
